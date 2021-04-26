@@ -3580,6 +3580,15 @@
         ],
         "device_name": "STM32L432KCUx"
     },
+    "DRVA_L432KC": {
+        "inherits": [
+            "NUCLEO_L432KC"
+        ],
+        "overrides": {
+            "clock_source": "USE_PLL_MSI",
+            "lse_available": 0
+        }
+    },
     "MCU_STM32L433xC": {
         "inherits": [
             "MCU_STM32L4"
