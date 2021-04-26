@@ -1,6 +1,7 @@
 
 /* mbed Microcontroller Library
  * Copyright (c) 2013-2016 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +16,6 @@
  * limitations under the License.
  */
 
-// define this to get rid of the minar dependency.
-#define YOTTA_CFG_UTEST_USE_CUSTOM_SCHEDULER 1
 
 #include "mbed.h"
 #include "greentea-client/test_env.h"

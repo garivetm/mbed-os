@@ -35,7 +35,9 @@
    Portions Copyright (c) 2016 - 2017 Analog Devices, Inc.
    ---------------------------------------------------------------------------*/
 
+#define __PROGRAM_START
 #include <cmsis.h>
+#undef __PROGRAM_START
 #include <adi_pwr.h>
 #include <startup_ADuCM4050.h>
 
@@ -150,10 +152,10 @@ void SramInit(void)
                                ADI_SRAM_BANK_5 |
                                ADI_SRAM_BANK_6 |
                                ADI_SRAM_BANK_7, true);
-    /* To disable the instruction SRAM and entire 64K of SRAM is used as DSRAM */
+    /* To disable the instruction SRAM and entire 128K of SRAM is used as DSRAM */
     adi_system_EnableISRAM(false);
-    /* To disable the instruction cache  */
-    adi_system_EnableCache(false);
+    /* To enable the 4K instruction cache out of DSRAM */
+    adi_system_EnableCache(true);
 }
 
 /*!

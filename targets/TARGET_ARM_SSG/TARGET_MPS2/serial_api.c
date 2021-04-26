@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2006-2015 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +31,7 @@
  ******************************************************************************/
 
 static const PinMap PinMap_UART_TX[] = {
-    {USBTX     , UART_0, 0},
+    {CONSOLE_TX     , UART_0, 0},
     {XB_TX   , UART_1, 0},
     {SH0_TX  , UART_2, 0},
     {SH1_TX  , UART_3, 0},
@@ -38,7 +39,7 @@ static const PinMap PinMap_UART_TX[] = {
 };
 
 static const PinMap PinMap_UART_RX[] = {
-    {USBRX     , UART_0, 0},
+    {CONSOLE_RX     , UART_0, 0},
     {XB_RX   , UART_1, 0},
     {SH0_RX  , UART_2, 0},
     {SH1_RX  , UART_3, 0},
@@ -157,7 +158,6 @@ void serial_init(serial_t *obj, PinName tx, PinName rx) {
     }
     uart_data[obj->index].sw_rts.pin = NC;
     uart_data[obj->index].sw_cts.pin = NC;
-    serial_set_flow_control(obj, FlowControlNone, NC, NC);
     
     is_stdio_uart = (uart == STDIO_UART) ? (1) : (0);
     
@@ -326,6 +326,9 @@ static void serial_irq_set_internal(serial_t *obj, SerialIrq irq, uint32_t enabl
 }
 
 void serial_irq_set(serial_t *obj, SerialIrq irq, uint32_t enable) {
+    if (RxIrq == irq) {
+        uart_data[obj->index].rx_irq_set_api = enable;
+    }
     serial_irq_set_internal(obj, irq, enable);
 }
 
@@ -365,5 +368,37 @@ void serial_break_set(serial_t *obj) {
 void serial_break_clear(serial_t *obj) {
 }
 void serial_set_flow_control(serial_t *obj, FlowControl type, PinName rxflow, PinName txflow) {
+}
+
+const PinMap *serial_tx_pinmap()
+{
+    return PinMap_UART_TX;
+}
+
+const PinMap *serial_rx_pinmap()
+{
+    return PinMap_UART_RX;
+}
+
+const PinMap *serial_cts_pinmap()
+{
+#if !DEVICE_SERIAL_FC
+    static const PinMap PinMap_UART_CTS[] = {
+        {NC, NC, 0}
+    };
+#endif
+
+    return PinMap_UART_CTS;
+}
+
+const PinMap *serial_rts_pinmap()
+{
+#if !DEVICE_SERIAL_FC
+    static const PinMap PinMap_UART_RTS[] = {
+        {NC, NC, 0}
+    };
+#endif
+
+    return PinMap_UART_RTS;
 }
 

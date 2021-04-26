@@ -31,6 +31,8 @@
  *******************************************************************************
  */
 
+/* MBED TARGET LIST: MAX32625MBED */
+
 #ifndef MBED_PINNAMES_H
 #define MBED_PINNAMES_H
 
@@ -60,7 +62,7 @@ typedef enum {
     P4_0 = (4 << PORT_SHIFT), P4_1, P4_2, P4_3, P4_4, P4_5, P4_6, P4_7,
 
     // Analog input pins
-    AIN_0 = (0xA << PORT_SHIFT), AIN_1, AIN_2, AIN_3, AIN_4, AIN_5,
+    AIN_0 = (0xA << PORT_SHIFT), AIN_1, AIN_2, AIN_3, AIN_4, AIN_5, AIN_6, AIN_7, AIN_8, AIN_9,
 
     LED_GREEN  = P3_1,
     LED_RED    = P3_0,
@@ -81,10 +83,18 @@ typedef enum {
     BUTTON2 = SW3,
 
     // USB bridge connected UART pins
-    USBTX = P2_1,
-    USBRX = P2_0,
-    STDIO_UART_TX = USBTX,
-    STDIO_UART_RX = USBRX,
+    CONSOLE_TX = P2_1,
+    CONSOLE_RX = P2_0,
+#if defined(MBED_CONF_TARGET_STDIO_UART_TX)
+    STDIO_UART_TX   = MBED_CONF_TARGET_STDIO_UART_TX,
+#else
+    STDIO_UART_TX   = CONSOLE_TX,
+#endif
+#if defined(MBED_CONF_TARGET_STDIO_UART_RX)
+    STDIO_UART_RX   = MBED_CONF_TARGET_STDIO_UART_RX,
+#else
+    STDIO_UART_RX   = CONSOLE_RX,
+#endif
 
     // I2C pins
     I2C0_SCL = P1_7,

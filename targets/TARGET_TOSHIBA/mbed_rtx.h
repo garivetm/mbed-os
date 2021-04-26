@@ -1,5 +1,8 @@
 /* mbed Microcontroller Library
- * (C)Copyright TOSHIBA ELECTRONIC DEVICES & STORAGE CORPORATION 2017 All rights reserved
+ *
+ * Copyright (C) 2019, Toshiba Electronic Device Solutions Corporation
+ *
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +20,18 @@
 #ifndef MBED_MBED_RTX_H
 #define MBED_MBED_RTX_H
 
-#if defined(TARGET_TMPM066)
+#if defined(TARGET_TMPM46B)
 
 #ifndef INITIAL_SP
-#define INITIAL_SP                        (0x20004000UL)
+#define INITIAL_SP                        (0x20080000UL)
+#endif
+
+#endif
+
+#if defined(TARGET_TMPM4G9)
+
+#ifndef INITIAL_SP
+#define INITIAL_SP                        (0x20030000UL)
 #endif
 
 #endif

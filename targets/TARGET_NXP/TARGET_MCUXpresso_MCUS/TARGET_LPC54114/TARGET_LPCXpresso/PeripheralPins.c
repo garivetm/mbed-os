@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2006-2013 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,8 +91,8 @@ const PinMap PinMap_SPI_MISO[] = {
 
 const PinMap PinMap_SPI_SSEL[] = {
     {P0_14, SPI_0, 1},
-    {P1_1,  SPI_1, 4},
-    {P1_2,  SPI_1, 4},
+    {P1_1,  SPI_1, ((2 << SSELNUM_SHIFT) | 4)},
+    {P1_2,  SPI_1, ((3 << SSELNUM_SHIFT) | 4)},
     {NC  ,  NC   , 0}
 };
 

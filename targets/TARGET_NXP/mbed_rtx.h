@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2016 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +18,8 @@
 #ifndef MBED_MBED_RTX_H
 #define MBED_MBED_RTX_H
 
+#include <stdint.h>
+
 #if defined(TARGET_LPC11U68)
 
 #ifndef INITIAL_SP
@@ -24,6 +27,7 @@
 #endif
 
 #elif defined(TARGET_LPC11U24)        \
+     || defined(TARGET_LPC11CXX)  \
      || defined(TARGET_LPC11U35_401)  \
      || defined(TARGET_LPC11U35_501)  \
      || defined(TARGET_LPCCAPPUCCINO)
@@ -38,46 +42,10 @@
 #define INITIAL_SP              (0x10001000UL)
 #endif
 
-#elif defined(TARGET_LPC1347)
-
-#ifndef INITIAL_SP
-#define INITIAL_SP              (0x10002000UL)
-#endif
-
-#elif defined(TARGET_LPC1549)
-
-#ifndef INITIAL_SP
-#define INITIAL_SP              (0x02009000UL)
-#endif
-
-#elif defined(TARGET_LPC1768) || defined(TARGET_LPC1769)
+#elif defined(TARGET_LPC1768)
 
 #ifndef INITIAL_SP
 #define INITIAL_SP              (0x10008000UL)
-#endif
-
-#elif defined(TARGET_LPC4088) || defined(TARGET_LPC4088_DM)
-
-#ifndef INITIAL_SP
-#define INITIAL_SP              (0x10010000UL)
-#endif
-
-#elif defined(TARGET_LPC4330) || defined(TARGET_LPC4337)
-
-#ifndef INITIAL_SP
-#define INITIAL_SP              (0x10008000UL)
-#endif
-
-#elif defined(TARGET_LPC812)
-
-#ifndef INITIAL_SP
-#define INITIAL_SP              (0x10001000UL)
-#endif
-
-#elif defined(TARGET_LPC824) || defined(TARGET_SSCI824)
-
-#ifndef INITIAL_SP
-#define INITIAL_SP              (0x10002000UL)
 #endif
 
 #elif defined(TARGET_LPC54114_M4)
@@ -86,10 +54,25 @@
 #define INITIAL_SP              (0x20010000UL)
 #endif
 
-#elif defined(TARGET_LPC546XX)
+#elif defined(TARGET_MCU_LPC546XX)
 
 #ifndef INITIAL_SP
 #define INITIAL_SP              (0x20028000UL)
+#endif
+
+#elif defined(TARGET_MIMXRT1050_EVK)
+
+#if defined(__ARMCC_VERSION)
+extern uint32_t               Image$$ARM_LIB_HEAP$$ZI$$Base[];
+extern uint32_t               Image$$ARM_LIB_HEAP$$ZI$$Length[];
+#define HEAP_START            Image$$ARM_LIB_HEAP$$ZI$$Base
+#define HEAP_SIZE             Image$$ARM_LIB_HEAP$$ZI$$Length
+#elif defined(__GNUC__)
+    /* No region declarations needed */
+#elif defined(__ICCARM__)
+    /* No region declarations needed */
+#else
+    #error "no toolchain defined"
 #endif
 
 #endif

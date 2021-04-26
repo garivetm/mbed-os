@@ -14,12 +14,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import print_function, absolute_import
+from builtins import str
 
-from os.path import splitext, basename, join
+from os.path import splitext, basename, relpath, join
+import shutil
 from tools.utils import mkdir
 from tools.export.gnuarmeclipse import GNUARMEclipse
 from tools.export.gnuarmeclipse import UID
 from tools.build_api import prepare_toolchain
+from tools.targets import TARGET_MAP
 from sys import flags, platform
 
 # Global random number generator instance.
@@ -34,36 +38,6 @@ class Sw4STM32(GNUARMEclipse):
     TOOLCHAIN = 'GCC_ARM'
 
     BOARDS = {
-        'B96B_F446VE':
-        {
-            'name': 'B96B-F446VE',
-            'mcuId': 'STM32F446VETx'
-        },
-        'DISCO_F051R8':
-        {
-            'name': 'STM32F0DISCOVERY',
-            'mcuId': 'STM32F051R8Tx'
-        },
-        'DISCO_F303VC':
-        {
-            'name': 'STM32F3DISCOVERY',
-            'mcuId': 'STM32F303VCTx'
-        },
-        'DISCO_F334C8':
-        {
-            'name': 'STM32F3348DISCOVERY',
-            'mcuId': 'STM32F334C8Tx'
-        },
-        'DISCO_F401VC':
-        {
-            'name': 'STM32F401C-DISCO',
-            'mcuId': 'STM32F401VCTx'
-        },
-        'DISCO_F407VG':
-        {
-            'name': 'STM32F4DISCOVERY',
-            'mcuId': 'STM32F407VGTx'
-        },
         'DISCO_F413ZH':
         {
             'name': 'DISCO_F413',
@@ -89,11 +63,6 @@ class Sw4STM32(GNUARMEclipse):
             'name': 'DISCO-F769NI',
             'mcuId': 'STM32F769NIHx'
         },
-        'DISCO_L053C8':
-        {
-            'name': 'STM32L0538DISCOVERY',
-            'mcuId': 'STM32L053C8Tx'
-        },
         'DISCO_L072CZ_LRWAN1':
         {
             'name': 'DISCO-L072CZ-LRWAN1',
@@ -108,21 +77,6 @@ class Sw4STM32(GNUARMEclipse):
         {
             'name': 'STM32L476G-DISCO',
             'mcuId': 'STM32L476VGTx'
-        },
-        'NUCLEO_F030R8':
-        {
-            'name': 'NUCLEO-F030R8',
-            'mcuId': 'STM32F030R8Tx'
-        },
-        'NUCLEO_F031K6':
-        {
-            'name': 'NUCLEO-F031K6',
-            'mcuId': 'STM32F031K6Tx'
-        },
-        'NUCLEO_F042K6':
-        {
-            'name': 'NUCLEO-F042K6',
-            'mcuId': 'STM32F042K6Tx'
         },
         'NUCLEO_F070RB':
         {
@@ -149,11 +103,6 @@ class Sw4STM32(GNUARMEclipse):
             'name': 'NUCLEO-F207ZG',
             'mcuId': 'STM32F207ZGTx'
         },
-        'NUCLEO_F302R8':
-        {
-            'name': 'NUCLEO-F302R8',
-            'mcuId': 'STM32F302R8Tx'
-        },
         'NUCLEO_F303K8':
         {
             'name': 'NUCLEO-F303K8',
@@ -169,25 +118,20 @@ class Sw4STM32(GNUARMEclipse):
             'name': 'NUCLEO-F303ZE',
             'mcuId': 'STM32F303ZETx'
         },
-        'NUCLEO_F334R8':
-        {
-            'name': 'NUCLEO-F334R8',
-            'mcuId': 'STM32F334R8Tx'
-        },
         'NUCLEO_F401RE':
         {
             'name': 'NUCLEO-F401RE',
             'mcuId': 'STM32F401RETx'
         },
-        'NUCLEO_F410RB':
-        {
-            'name': 'NUCLEO-F410RB',
-            'mcuId': 'STM32F410RBTx'
-        },
         'NUCLEO_F411RE':
         {
             'name': 'NUCLEO-F411RE',
             'mcuId': 'STM32F411RETx'
+        },
+        'NUCLEO_F413ZH':
+        {
+            'name': 'NUCLEO-F413ZH',
+            'mcuId': 'STM32F413ZHTx'
         },
         'NUCLEO_F429ZI':
         {
@@ -214,21 +158,6 @@ class Sw4STM32(GNUARMEclipse):
             'name': 'NUCLEO-F767ZI',
             'mcuId': 'STM32F767ZITx'
         },
-        'NUCLEO_L011K4':
-        {
-            'name': 'NUCLEO-L011K4',
-            'mcuId': 'STM32L011K4Tx'
-        },
-        'NUCLEO_L031K6':
-        {
-            'name': 'NUCLEO-L031K6',
-            'mcuId': 'STM32L031K6Tx'
-        },
-        'NUCLEO_L053R8':
-        {
-            'name': 'NUCLEO-L053R8',
-            'mcuId': 'STM32L053R8Tx'
-        },
         'NUCLEO_L073RZ':
         {
             'name': 'NUCLEO-L073RZ',
@@ -244,6 +173,11 @@ class Sw4STM32(GNUARMEclipse):
             'name': 'NUCLEO-L432KC',
             'mcuId': 'STM32L432KCUx'
         },
+        'ADV_WISE_1510':
+        {
+            'name': 'MTB-ADV-WISE-1510',
+            'mcuId': 'STM32L443xC'
+        },
         'NUCLEO_L476RG':
         {
             'name': 'NUCLEO-L476RG',
@@ -258,15 +192,38 @@ class Sw4STM32(GNUARMEclipse):
         {
             'name': 'NUCLEO-L496ZG',
             'mcuId': 'STM32L496ZGTx'
-        },        
+        },
         'NUCLEO_L496ZG_P':
         {
             'name': 'NUCLEO-L496ZG',
             'mcuId': 'STM32L496ZGTx'
         },
+        'NUCLEO_L4R5ZI_P':
+        {
+            'name': 'NUCLEO-L4R5ZI',
+            'mcuId': 'STM32L4R5ZITx'
+        },
+        'NUCLEO_L4R5ZI':
+        {
+            'name': 'NUCLEO-L4R5ZI',
+            'mcuId': 'STM32L4R5ZITx'
+        },
+        'NUCLEO_WB55RG':
+        {
+            'name': 'P-NUCLEO-WB55.NUCLEO',
+            'mcuId': 'STM32WB55RGVx'
+        }
     }
 
-    TARGETS = BOARDS.keys()
+    @classmethod
+    def is_target_supported(cls, target_name):
+        target = TARGET_MAP[target_name]
+        if not target.is_TFM_target:
+            target_supported = bool(set(target.resolution_order_names)
+                                    .intersection(set(cls.BOARDS.keys())))
+            toolchain_supported = cls.TOOLCHAIN in target.supported_toolchains
+            return target_supported and toolchain_supported
+        return False
 
     def __gen_dir(self, dir_name):
         """
@@ -396,17 +353,15 @@ class Sw4STM32(GNUARMEclipse):
         if not self.resources.linker_script:
             raise NotSupportedException("No linker script found.")
 
-        print ('\nCreate a System Workbench for STM32 managed project')
-        print ('Project name: {0}'.format(self.project_name))
-        print ('Target:       {0}'.format(self.toolchain.target.name))
-        print ('Toolchain:    {0}'.format(self.TOOLCHAIN) + '\n')
+        print('\nCreate a System Workbench for STM32 managed project')
+        print('Project name: {0}'.format(self.project_name))
+        print('Target:       {0}'.format(self.toolchain.target.name))
+        print('Toolchain:    {0}'.format(self.TOOLCHAIN) + '\n')
 
         self.resources.win_to_unix()
 
-        config_header = self.filter_dot(self.toolchain.get_config_header())
-
         libraries = []
-        for lib in self.resources.libraries:
+        for lib in self.libraries:
             library, _ = splitext(basename(lib))
             libraries.append(library[3:])
 
@@ -420,19 +375,18 @@ class Sw4STM32(GNUARMEclipse):
         self.c_defines = [s.replace('"', '&quot;')
                           for s in self.toolchain.get_symbols()]
         self.cpp_defines = self.c_defines
-        print 'Symbols: {0}'.format(len(self.c_defines))
 
         self.include_path = []
         for s in self.resources.inc_dirs:
             self.include_path.append("../" + self.filter_dot(s))
-        print ('Include folders: {0}'.format(len(self.include_path)))
+        print('Include folders: {0}'.format(len(self.include_path)))
 
         self.compute_exclusions()
 
-        print ('Exclude folders: {0}'.format(len(self.excluded_folders)))
+        print('Exclude folders: {0}'.format(len(self.excluded_folders)))
 
         ld_script = self.filter_dot(self.resources.linker_script)
-        print ('Linker script:   {0}'.format(ld_script))
+        print('Linker script:   {0}'.format(ld_script))
 
         lib_dirs = [self.filter_dot(s) for s in self.resources.lib_dirs]
 
@@ -449,9 +403,6 @@ class Sw4STM32(GNUARMEclipse):
             opts['id'] = id
             opts['name'] = opts['id'].capitalize()
 
-            # TODO: Add prints to log or console in verbose mode.
-            #print ('\nBuild configuration: {0}'.format(opts['name']))
-
             profile = profiles[id]
 
             # A small hack, do not bother with src_path again,
@@ -464,13 +415,6 @@ class Sw4STM32(GNUARMEclipse):
             toolchain.build_dir = self.toolchain.build_dir
 
             flags = self.toolchain_flags(toolchain)
-
-            # TODO: Add prints to log or console in verbose mode.
-            # print 'Common flags:', ' '.join(flags['common_flags'])
-            # print 'C++ flags:', ' '.join(flags['cxx_flags'])
-            # print 'C flags:', ' '.join(flags['c_flags'])
-            # print 'ASM flags:', ' '.join(flags['asm_flags'])
-            # print 'Linker flags:', ' '.join(flags['ld_flags'])
 
             # Most GNU ARM Eclipse options have a parent,
             # either debug or release.
@@ -510,7 +454,7 @@ class Sw4STM32(GNUARMEclipse):
             'name': self.project_name,
             'platform': platform,
             'include_paths': self.include_path,
-            'config_header': config_header,
+            'config_header': self.config_header_ref.name,
             'exclude_paths': '|'.join(self.excluded_folders),
             'ld_script': ld_script,
             'library_paths': lib_dirs,
@@ -534,3 +478,7 @@ class Sw4STM32(GNUARMEclipse):
                       'makefile.targets', trim_blocks=True, lstrip_blocks=True)
         self.gen_file('sw4stm32/launch.tmpl', ctx, self.project_name +
                       ' ' + options['debug']['name'] + '.launch')
+
+    @staticmethod
+    def clean(_):
+        shutil.rmtree(".settings")

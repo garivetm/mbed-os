@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2016 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +30,7 @@
 #define INITIAL_SP              (0x20008000UL)
 #endif
 
-#elif defined(TARGET_MAX32620)
+#elif defined(TARGET_MAX32620) || defined(TARGET_MAX32620C)
 
 #ifndef INITIAL_SP
 #define INITIAL_SP              (0x20040000UL)

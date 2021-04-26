@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2016 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,31 +21,19 @@
 #include <stdint.h>
 #include "clocking.h"
 
-#if defined(TARGET_EFM32GG_STK3700)
+#if defined(TARGET_EFM32GG)
 
 #ifndef INITIAL_SP
 #define INITIAL_SP              (0x20020000UL)
 #endif
 
-#elif defined(TARGET_EFM32HG_STK3400)
+#elif defined(TARGET_EFM32HG)
 
 #ifndef INITIAL_SP
 #define INITIAL_SP              (0x20002000UL)
 #endif
 
-#elif defined(TARGET_EFM32LG_STK3600)
-
-#ifndef INITIAL_SP
-#define INITIAL_SP              (0x20008000UL)
-#endif
-
-#elif defined(TARGET_EFM32PG_STK3401)
-
-#ifndef INITIAL_SP
-#define INITIAL_SP              (0x20008000UL)
-#endif
-
-#elif defined(TARGET_EFM32WG_STK3800)
+#elif defined(TARGET_EFM32LG)
 
 #ifndef INITIAL_SP
 #define INITIAL_SP              (0x20008000UL)
@@ -56,10 +45,16 @@
 #define INITIAL_SP              (0x20007C00UL)
 #endif
 
-#elif defined(TARGET_EFR32MG12) || defined(TARGET_EFM32PG12)
+#elif defined(TARGET_EFR32MG12)
 
 #ifndef INITIAL_SP
 #define INITIAL_SP              (0x20040000UL)
+#endif
+
+#elif defined(TARGET_EFM32GG11)
+
+#ifndef INITIAL_SP
+#define INITIAL_SP              (0x20080000UL)
 #endif
 
 #endif

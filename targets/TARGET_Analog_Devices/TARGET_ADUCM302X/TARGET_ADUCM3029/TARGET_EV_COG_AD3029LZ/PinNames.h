@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2017 Analog Devices, Inc.
+ * Copyright (c) 2010-2018 Analog Devices, Inc.
  *
  * All rights reserved.
  *
@@ -37,6 +37,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
+
+/* MBED TARGET LIST: EV_COG_AD3029LZ */
 
 #ifndef MBED_PINNAMES_H
 #define MBED_PINNAMES_H
@@ -106,10 +108,10 @@ typedef enum {
     P2_11 = (2 << GPIO_PORT_SHIFT | 11),
 
     // USB Pins
-    USBTX = P0_10,
-    USBRX = P0_11,
-    USBTX1 = P1_15,
-    USBRX1 = P2_00,
+    CONSOLE_TX = P0_10,
+    CONSOLE_RX = P0_11,
+    CONSOLE_TX1 = P1_15,
+    CONSOLE_RX1 = P2_00,
 
     // mbed original LED naming
     LED1 = P2_02,
@@ -120,6 +122,9 @@ typedef enum {
     //Push buttons
     PB0 = P1_00,        // BTN1
     PB1 = P0_09,        // BTN2
+    BUTTON1 = P1_00,    // BTN1
+    BUTTON2 = P0_09,    // BTN2
+
     BOOT = P1_01,
     WAKE0 = P0_15,      // JP15 to select
     WAKE1 = P1_00,      // JP8 (BTN1 jumper) to select

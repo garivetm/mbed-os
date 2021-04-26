@@ -1,5 +1,7 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2017 ARM Limited
+ * Copyright (c) 2017 STMicroelectronics
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +17,7 @@
  */
 
 #include "flash_api.h"
-#include "mbed_critical.h"
+#include "platform/mbed_critical.h"
 
 #if DEVICE_FLASH
 #include "mbed_assert.h"
@@ -34,27 +36,6 @@ int32_t flash_free(flash_t *obj)
     return 0;
 }
 
-static int32_t flash_unlock(void)
-{
-    /* Allow Access to Flash control registers and user Falsh */
-    if (HAL_FLASH_Unlock()) {
-        return -1;
-    } else {
-        return 0;
-    }
-}
-
-static int32_t flash_lock(void)
-{
-    /* Disable the Flash option control register access (recommended to protect
-    the option Bytes against possible unwanted operations) */
-    if (HAL_FLASH_Lock()) {
-        return -1;
-    } else {
-        return 0;
-    }
-}
-
 int32_t flash_erase_sector(flash_t *obj, uint32_t address)
 {
     uint32_t PAGEError = 0;
@@ -66,9 +47,11 @@ int32_t flash_erase_sector(flash_t *obj, uint32_t address)
         return -1;
     }
 
-    if (flash_unlock() != HAL_OK) {
+    if (HAL_FLASH_Unlock() != HAL_OK) {
         return -1;
     }
+
+    core_util_critical_section_enter();
 
     /* Clear OPTVERR bit set on virgin samples */
     __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_OPTVERR);
@@ -88,14 +71,18 @@ int32_t flash_erase_sector(flash_t *obj, uint32_t address)
         status = -1;
     }
 
-    flash_lock();
+    core_util_critical_section_exit();
+
+    if (HAL_FLASH_Lock() != HAL_OK) {
+        return -1;
+    }
 
     return status;
 
 }
 
 int32_t flash_program_page(flash_t *obj, uint32_t address,
-        const uint8_t *data, uint32_t size)
+                           const uint8_t *data, uint32_t size)
 {
     uint32_t StartAddress = 0;
     int32_t status = 0;
@@ -109,7 +96,7 @@ int32_t flash_program_page(flash_t *obj, uint32_t address,
         return -1;
     }
 
-    if (flash_unlock() != HAL_OK) {
+    if (HAL_FLASH_Unlock() != HAL_OK) {
         return -1;
     }
 
@@ -121,7 +108,7 @@ int32_t flash_program_page(flash_t *obj, uint32_t address,
     if ((uint32_t) data % 4 != 0) {
         volatile uint32_t data32;
         while ((address < (StartAddress + size)) && (status == 0)) {
-            for (uint8_t i =0; i < 4; i++) {
+            for (uint8_t i = 0; i < 4; i++) {
                 *(((uint8_t *) &data32) + i) = *(data + i);
             }
 
@@ -134,7 +121,7 @@ int32_t flash_program_page(flash_t *obj, uint32_t address,
         }
     } else { /*  case where data is aligned, so let's avoid any copy */
         while ((address < (StartAddress + size)) && (status == 0)) {
-            if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, address, *((uint32_t*) data)) == HAL_OK) {
+            if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, address, *((uint32_t *) data)) == HAL_OK) {
                 address = address + 4;
                 data = data + 4;
             } else {
@@ -143,12 +130,15 @@ int32_t flash_program_page(flash_t *obj, uint32_t address,
         }
     }
 
-    flash_lock();
+    if (HAL_FLASH_Lock() != HAL_OK) {
+        return -1;
+    }
 
     return status;
 }
 
-uint32_t flash_get_sector_size(const flash_t *obj, uint32_t address) {
+uint32_t flash_get_sector_size(const flash_t *obj, uint32_t address)
+{
     if ((address >= (FLASH_BASE + FLASH_SIZE)) || (address < FLASH_BASE)) {
         return MBED_FLASH_INVALID_SIZE;
     } else {
@@ -157,17 +147,27 @@ uint32_t flash_get_sector_size(const flash_t *obj, uint32_t address) {
     }
 }
 
-uint32_t flash_get_page_size(const flash_t *obj) {
+uint32_t flash_get_page_size(const flash_t *obj)
+{
     /*  Page size is the minimum programable size, which 4 bytes */
     return 4;
 }
 
-uint32_t flash_get_start_address(const flash_t *obj) {
+uint32_t flash_get_start_address(const flash_t *obj)
+{
     return FLASH_BASE;
 }
 
-uint32_t flash_get_size(const flash_t *obj) {
+uint32_t flash_get_size(const flash_t *obj)
+{
     return FLASH_SIZE;
+}
+
+uint8_t flash_get_erase_value(const flash_t *obj)
+{
+    (void)obj;
+
+    return 0x0;
 }
 
 #endif

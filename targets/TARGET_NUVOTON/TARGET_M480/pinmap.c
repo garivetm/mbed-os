@@ -1,5 +1,7 @@
-/* mbed Microcontroller Library
- * Copyright (c) 2015-2016 Nuvoton
+/*
+ * Copyright (c) 2015-2016, Nuvoton Technology Corporation
+ *
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +19,7 @@
 #include "mbed_assert.h"
 #include "pinmap.h"
 #include "PortNames.h"
+#include "PeripheralNames.h"
 #include "mbed_error.h"
 
 /**
@@ -47,27 +50,72 @@ void pin_mode(PinName pin, PinMode mode)
     uint32_t mode_intern = GPIO_MODE_INPUT;
 
     switch (mode) {
-    case PullUp:
-        mode_intern = GPIO_MODE_INPUT;
-        break;
+        case InputOnly:
+            mode_intern = GPIO_MODE_INPUT;
+            break;
 
-    case PullDown:
-    case PullNone:
-        // NOTE: Not support
-        return;
+        case PushPullOutput:
+            mode_intern = GPIO_MODE_OUTPUT;
+            break;
 
-    case PushPull:
-        mode_intern = GPIO_MODE_OUTPUT;
-        break;
+        case OpenDrain:
+            mode_intern = GPIO_MODE_OPEN_DRAIN;
+            break;
 
-    case OpenDrain:
-        mode_intern = GPIO_MODE_OPEN_DRAIN;
-        break;
+        case QuasiBidirectional:
+            mode_intern = GPIO_MODE_QUASI;
+            break;
 
-    case Quasi:
-        mode_intern = GPIO_MODE_QUASI;
-        break;
+        default:
+            /* H/W doesn't support separate configuration for input pull mode/direction.
+             * We expect upper layer would have translated input pull mode/direction
+             * to I/O mode */
+            return;
     }
 
     GPIO_SetMode(gpio_base, 1 << pin_index, mode_intern);
+
+    /* Invalid combinations of PinMode/PinDirection
+     *
+     * We assume developer would avoid the following combinations of PinMode/PinDirection
+     * which are invalid:
+     * 1. InputOnly/PIN_OUTPUT
+     * 2. PushPullOutput/PIN_INPUT
+     */
 }
+
+/* List of pins excluded from testing */
+const PinList *pinmap_restricted_pins()
+{
+    static const PinName pins[] = {
+        CONSOLE_TX, CONSOLE_RX,   // Dedicated to USB VCOM
+#if defined(TARGET_NUMAKER_IOT_M487)
+        A2, A3,         // Dedicated to on-board ESP8266 WiFi module RTS/CTS
+#endif
+    };
+    static const PinList pin_list = {
+        sizeof(pins) / sizeof(pins[0]),
+        pins
+    };
+    return &pin_list;
+}
+
+/* List of UART peripherals excluded from testing */
+#if DEVICE_SERIAL
+const PeripheralList *pinmap_uart_restricted_peripherals()
+{
+    static const int peripherals[] = {
+        USB_UART,       // Dedicated to USB VCOM
+#if TARGET_NUMAKER_PFM_M487 || TARGET_NUMAKER_IOT_M487
+        UART_6,         // Only available in M480 LG
+        UART_7,
+#endif
+    };
+
+    static const PeripheralList peripheral_list = {
+        sizeof peripherals / sizeof peripherals[0],
+        peripherals
+    };
+    return &peripheral_list;
+}
+#endif

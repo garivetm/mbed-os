@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2006-2013 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +17,13 @@
 #include "sleep_api.h"
 #include "cmsis.h"
 #include "mbed_interface.h"
+
+/*
+ * @note
+ *  The mbed interface semihosting is disconnected as part of going to sleep, and can not be restored.
+ * Flash re-programming and the USB serial port will remain active, but the mbed program will no longer be
+ * able to access the LocalFileSystem
+ */
 
 void hal_sleep(void) {
 

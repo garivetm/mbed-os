@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2006-2013 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +42,6 @@ void ADC_ClockPower_Configuration(void)
     POWER_DisablePD(kPDRUNCFG_PD_TEMPS);    /* Power on the temperature sensor. */
 
     /* Enable the clock. */
-    CLOCK_AttachClk(kFRO12M_to_MAIN_CLK);
     CLOCK_EnableClock(kCLOCK_Adc0);
 }
 
@@ -50,5 +50,10 @@ void rtc_setup_oscillator(void)
 {
     /* Enable the RTC 32K Oscillator */
     SYSCON->RTCOSCCTRL |= SYSCON_RTCOSCCTRL_EN_MASK;
+}
+
+uint32_t us_ticker_get_clock()
+{
+    return CLOCK_GetFreq(kCLOCK_BusClk);;
 }
 

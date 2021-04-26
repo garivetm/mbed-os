@@ -35,9 +35,18 @@
 #include "PeripheralNames.h"
 #include "PinNames.h"
 
+#include "stm32f2xx_ll_usart.h"
+#include "stm32f2xx_ll_tim.h"
+#include "stm32f2xx_ll_pwr.h"
+#include "stm32f2xx_ll_adc.h"
+#include "stm32f2xx_ll_rtc.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define GPIO_IP_WITHOUT_BRR
+#include "gpio_object.h"
 
 struct gpio_irq_s {
     IRQn_Type irq_n;
@@ -94,7 +103,7 @@ struct spi_s {
     PinName pin_mosi;
     PinName pin_sclk;
     PinName pin_ssel;
-#ifdef DEVICE_SPI_ASYNCH
+#if DEVICE_SPI_ASYNCH
     uint32_t event;
     uint8_t transfer_type;
 #endif
@@ -137,7 +146,7 @@ struct pwmout_s {
     uint8_t inverted;
 };
 
-#ifdef DEVICE_CAN
+#if DEVICE_CAN
 struct can_s {
     CAN_HandleTypeDef CanHandle;
     int index;
@@ -145,8 +154,16 @@ struct can_s {
 };
 #endif
 
-#define GPIO_IP_WITHOUT_BRR
-#include "gpio_object.h"
+struct trng_s {
+    RNG_HandleTypeDef handle;
+};
+
+#if DEVICE_FLASH
+struct flash_s {
+    /*  nothing to be stored for now */
+    uint32_t dummy;
+};
+#endif
 
 #ifdef __cplusplus
 }

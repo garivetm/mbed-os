@@ -20,6 +20,9 @@
  * limitations under the License.
  *
  ******************************************************************************/
+
+/* MBED TARGET LIST: TB_SENSE_12 */
+
 #ifndef MBED_PINNAMES_H
 #define MBED_PINNAMES_H
 
@@ -50,17 +53,17 @@ typedef enum {
 
     /* Expansion headers */
     EXP3  = PA8,
-    EXP4  = PC6,
+    EXP4  = PK0,
     EXP5  = PA9,
-    EXP6  = PC7,
-    EXP7  = PF3,
-    EXP8  = PC8,
-    EXP9  = PF4,
-    EXP10 = PC9,
+    EXP6  = PK2,
+    EXP7  = PA6,
+    EXP8  = PF7,
+    EXP9  = PA7,
+    EXP10 = PA5,
     EXP11 = PF5,
-    EXP12 = PA6,
+    EXP12 = PF3,
     EXP13 = PF6,
-    EXP14 = PA7,
+    EXP14 = PF4,
     EXP15 = PC11,
     EXP16 = PC10,
 
@@ -69,12 +72,20 @@ typedef enum {
     SERIAL_RX   = PA7,
 
     /* Board Controller UART (USB)*/
-    USBTX       = PA0,
-    USBRX       = PA1,
+    CONSOLE_TX       = PA0,
+    CONSOLE_RX       = PA1,
 
     /* Board Controller */
-    STDIO_UART_TX = USBTX,
-    STDIO_UART_RX = USBRX
+#if defined(MBED_CONF_TARGET_STDIO_UART_TX)
+    STDIO_UART_TX   = MBED_CONF_TARGET_STDIO_UART_TX,
+#else
+    STDIO_UART_TX   = CONSOLE_TX,
+#endif
+#if defined(MBED_CONF_TARGET_STDIO_UART_RX)
+    STDIO_UART_RX   = MBED_CONF_TARGET_STDIO_UART_RX,
+#else
+    STDIO_UART_RX   = CONSOLE_RX
+#endif
 } PinName;
 
 #ifdef __cplusplus

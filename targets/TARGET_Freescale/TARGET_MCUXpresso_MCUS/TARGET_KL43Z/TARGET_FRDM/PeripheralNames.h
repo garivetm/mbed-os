@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2006-2013 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +33,16 @@ typedef enum {
     LPUART_1 = 1,
 } UARTName;
 
-#define STDIO_UART_TX     USBTX
-#define STDIO_UART_RX     USBRX
+#if defined(MBED_CONF_TARGET_STDIO_UART_TX)
+#define STDIO_UART_TX MBED_CONF_TARGET_STDIO_UART_TX
+#else
+#define STDIO_UART_TX CONSOLE_TX
+#endif
+#if defined(MBED_CONF_TARGET_STDIO_UART_RX)
+#define STDIO_UART_RX MBED_CONF_TARGET_STDIO_UART_RX
+#else
+#define STDIO_UART_RX CONSOLE_RX
+#endif
 #define STDIO_UART        LPUART_0
 
 typedef enum {
@@ -50,9 +59,7 @@ typedef enum {
     PWM_5  = (0 << TPM_SHIFT) | (4),  // TPM0 CH4
     PWM_6  = (0 << TPM_SHIFT) | (5),  // TPM0 CH5
     PWM_7  = (1 << TPM_SHIFT) | (0),  // TPM1 CH0
-    PWM_8  = (1 << TPM_SHIFT) | (1),  // TPM1 CH1
-    PWM_9  = (2 << TPM_SHIFT) | (0),  // TPM2 CH0
-    PWM_10 = (2 << TPM_SHIFT) | (1),  // TPM2 CH1
+    PWM_8  = (1 << TPM_SHIFT) | (1)   // TPM1 CH1
 } PWMName;
 
 #define ADC_INSTANCE_SHIFT           8

@@ -62,7 +62,6 @@ extern uint32_t __bss_end__;
 extern uint32_t __bss_extern_start__  WEAK;
 extern uint32_t __bss_extern_end__ WEAK;
 
-extern void uvisor_init(void);
 #if defined(TOOLCHAIN_GCC_ARM)
 extern void _start(void);
 #else
@@ -233,7 +232,7 @@ WEAK_ALIAS_FUNC(CRC_IRQHandler, Default_Handler)        // 141: CRC
 
 /* Vector table */
 #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050))
-__attribute__ ((section("RESET")))
+__attribute__ ((section("RESET"), used))
 const uint32_t __vector_handlers[] = {
 #elif defined(__ICCARM__)
 extern uint32_t CSTACK$$Limit;

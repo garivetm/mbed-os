@@ -7,7 +7,7 @@
  * @date:    $Date: $
  *-----------------------------------------------------------------------------
  *
-Copyright (c) 2010-2017 Analog Devices, Inc.
+Copyright (c) 2010-2018 Analog Devices, Inc.
 
 All rights reserved.
 
@@ -63,16 +63,20 @@ RESET_EXCPT_HNDLR
 
 #include <adi_types.h>
 #define VECTOR_SECTION                 ".vectors"
-#ifdef __CC_ARM
-extern unsigned Image$$ADUCM_HEAP$$Base[];
-extern unsigned Image$$ADUCM_HEAP$$ZI$$Limit[];
+/* IVT typedefs. */
+typedef void( *pFunc )( void );
+
+#ifdef __ARMCC_VERSION
 void Default_Handler(void);
-#define SECTION_NAME(sectionname)      __attribute__ ((section(sectionname)))
-#define SECTION_PLACE(def,sectionname) def __attribute__ ((section(sectionname)))
+#define SECTION_NAME(sectionname)      __attribute__((section(sectionname)))
+#define SECTION_PLACE(def,sectionname) def __attribute__((section(sectionname)))
 #define IVT_NAME                       __Vectors
 #define RESET_EXCPT_HNDLR              __main
 #define COMPILER_NAME                  "ARMCC"
-#define WEAK_FUNCTION(x)               void x (void) __attribute__ ((weak, alias("Default_Handler")));
+#define WEAK_FUNCTION(x)               void x (void) __attribute__((weak, alias("Default_Handler")));
+extern uint32_t Load$$LR$$LR_IROM1$$Base[];
+#define NVIC_FLASH_VECTOR_ADDRESS      ((uint32_t)Load$$LR$$LR_IROM1$$Base)
+
 #elif defined(__ICCARM__)
 /*
 * IAR MISRA C 2004 error suppressions:
@@ -91,17 +95,20 @@ void Default_Handler(void);
 #define RESET_EXCPT_HNDLR              __iar_program_start
 #define COMPILER_NAME                  "ICCARM"
 #define WEAK_FUNCTION(x)  WEAK_FUNC  ( void x (void)) { while(1){} }
+#pragma section=VECTOR_SECTION
+#define NVIC_FLASH_VECTOR_ADDRESS      ((uint32_t)__section_begin(VECTOR_SECTION))
+
 #elif defined(__GNUC__)
-extern unsigned __etext;
-extern unsigned __data_start__;
-extern unsigned __data_end__;
-extern unsigned __copy_table_start__;
-extern unsigned __copy_table_end__;
-extern unsigned __zero_table_start__;
-extern unsigned __zero_table_end__;
-extern unsigned __bss_start__;
-extern unsigned __bss_end__;
-extern unsigned __StackTop;
+extern uint32_t __etext;
+extern uint32_t __data_start__;
+extern uint32_t __data_end__;
+extern uint32_t __copy_table_start__;
+extern uint32_t __copy_table_end__;
+extern uint32_t __zero_table_start__;
+extern uint32_t __zero_table_end__;
+extern uint32_t __bss_start__;
+extern uint32_t __bss_end__;
+extern uint32_t __StackTop;
 void Default_Handler(void);
 /*----------------------------------------------------------------------------
   External References
@@ -114,18 +121,21 @@ extern int  __START(void) __attribute__((noreturn));    /* main entry point */
 #define RESET_EXCPT_HNDLR              __START
 #endif
 #ifndef __STACK_SIZE
-#define	__STACK_SIZE  0x00000400
+#define __STACK_SIZE  0x00000400
 #endif
 #if !defined(__HEAP_SIZE) || (__HEAP_SIZE <= 0)
-#define	__HEAP_SIZE   0x00000C00
+#define __HEAP_SIZE   0x00000C00
 #endif
 #define SECTION_NAME(sectionname)      __attribute__ ((section(sectionname)))
 #define SECTION_PLACE(def,sectionname) def __attribute__ ((section(sectionname)))
 #define IVT_NAME                       __Vectors
 #define COMPILER_NAME                  "GNUC"
 #define WEAK_FUNCTION(x)               void x (void) __attribute__ ((weak, alias("Default_Handler")));
+extern const pFunc IVT_NAME[];
+#define NVIC_FLASH_VECTOR_ADDRESS      ((uint32_t)IVT_NAME)
 #define __STARTUP_CLEAR_BSS_MULTIPLE
 #endif // __GNUC__
+
 #define LASTCRCPAGE                    0
 #define BLANKX4   0xFFFFFFFF
 #define BLANKX20  BLANKX4,BLANKX4,BLANKX4,BLANKX4,BLANKX4,BLANKX4,BLANKX4,BLANKX4
@@ -134,8 +144,6 @@ extern int  __START(void) __attribute__((noreturn));    /* main entry point */
 #define BLANKX60  BLANKX20,BLANKX20,BLANKX20
 void RESET_EXCPT_HNDLR(void);
 void Reset_Handler(void);
-/* IVT typedefs. */
-typedef void( *pFunc )( void );
 
 #define ADUCM4050_VECTORS \
     /* Configure Initial Stack Pointer, using linker-generated symbols */\

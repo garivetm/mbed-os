@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2006-2013 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -451,4 +452,14 @@ void can_monitor(can_t *obj, int silent) {
     if (!(mod_mask & 1)) {
         can_enable(obj);
     }
+}
+
+const PinMap *can_rd_pinmap()
+{
+    return PinMap_CAN_TD;
+}
+
+const PinMap *can_td_pinmap()
+{
+    return PinMap_CAN_RD;
 }

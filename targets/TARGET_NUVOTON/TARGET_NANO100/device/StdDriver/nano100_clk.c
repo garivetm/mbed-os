@@ -70,7 +70,9 @@ void CLK_EnableCKO(uint32_t u32ClkSrc, uint32_t u32ClkDiv)
   */
 void CLK_PowerDown(void)
 {
-    SCB->SCR = SCB_SCR_SLEEPDEEP_Msk;
+    /* Set the processor uses deep sleep as its low power mode */
+    SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+
     CLK->PWRCTL |= (CLK_PWRCTL_PD_EN_Msk | CLK_PWRCTL_WK_DLY_Msk );
     __WFI();
 }
@@ -81,6 +83,9 @@ void CLK_PowerDown(void)
   */
 void CLK_Idle(void)
 {
+    /* Set the processor uses sleep as its low power mode */
+    SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+
     CLK->PWRCTL &= ~(CLK_PWRCTL_PD_EN_Msk );
     __WFI();
 }
@@ -608,7 +613,7 @@ uint32_t CLK_WaitClockReady(uint32_t u32ClkMask)
 {
     int32_t i32TimeOutCnt;
 
-    i32TimeOutCnt = __HSI / 200; /* About 5ms */
+    i32TimeOutCnt = __HSI / 20; /* About 50ms */
 
     while((CLK->CLKSTATUS & u32ClkMask) != u32ClkMask) {
         if(i32TimeOutCnt-- <= 0)

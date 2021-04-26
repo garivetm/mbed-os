@@ -42,7 +42,7 @@
 #include "adi_gpio.h"
 #include "adi_gpio_def.h"
 
-#ifdef DEVICE_INTERRUPTIN
+#if DEVICE_INTERRUPTIN
 
 #define MAX_GPIO_LINES    16
 #define MAX_GPIO_PORTS    ADI_GPIO_NUM_PORTS
@@ -52,9 +52,12 @@ typedef struct {
     gpio_irq_event event;
     uint8_t int_enable;
 } gpio_chan_info_t;
-
-extern uint8_t gpioMemory[ADI_GPIO_MEMORY_SIZE];
-extern uint8_t gpio_initialized;
+/*******************************************************************************
+   ADI_GPIO_DEV_DATA Instance memory containing memory pointer should
+   guarantee 4 byte alignmnet.
+ *******************************************************************************/
+extern uint32_t gpioMemory[(ADI_GPIO_MEMORY_SIZE + 3)/4];
+extern uint8_t  gpio_initialized;
 static gpio_chan_info_t channel_ids[MAX_GPIO_PORTS][MAX_GPIO_LINES];
 static gpio_irq_handler irq_handler = NULL;
 
@@ -323,4 +326,4 @@ void gpio_irq_disable(gpio_irq_t *obj)
     channel_ids[port][pin_num].int_enable = 0;
 }
 
-#endif	// #ifdef DEVICE_INTERRUPTIN
+#endif	// #if DEVICE_INTERRUPTIN

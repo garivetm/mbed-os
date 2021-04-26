@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2006-2013 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +24,10 @@ extern "C" {
 #endif
 
 typedef enum {
+    GPIO_X = 0, // dummy peripheral used instead of GPIO_A..GPIO_C
+} GPIOName;
+
+typedef enum {
     OSC32KCLK = 0
 } RTCName;
 
@@ -30,8 +35,16 @@ typedef enum {
     LPUART_0 = 0
 } UARTName;
 
-#define STDIO_UART_TX     USBTX
-#define STDIO_UART_RX     USBRX
+#if defined(MBED_CONF_TARGET_STDIO_UART_TX)
+#define STDIO_UART_TX MBED_CONF_TARGET_STDIO_UART_TX
+#else
+#define STDIO_UART_TX CONSOLE_TX
+#endif
+#if defined(MBED_CONF_TARGET_STDIO_UART_RX)
+#define STDIO_UART_RX MBED_CONF_TARGET_STDIO_UART_RX
+#else
+#define STDIO_UART_RX CONSOLE_RX
+#endif
 #define STDIO_UART           LPUART_0
 
 typedef enum {
@@ -46,9 +59,7 @@ typedef enum {
     PWM_3  = (0 << TPM_SHIFT) | (2),  // TPM0 CH2
     PWM_4  = (0 << TPM_SHIFT) | (3),  // TPM0 CH3
     PWM_5  = (1 << TPM_SHIFT) | (0),  // TPM1 CH0
-    PWM_6  = (1 << TPM_SHIFT) | (1),  // TPM1 CH1
-    PWM_7  = (2 << TPM_SHIFT) | (0),  // TPM2 CH0
-    PWM_8  = (2 << TPM_SHIFT) | (1),  // TPM2 CH1
+    PWM_6  = (1 << TPM_SHIFT) | (1)   // TPM1 CH1
 } PWMName;
 
 #define ADC_INSTANCE_SHIFT           8
@@ -65,7 +76,7 @@ typedef enum {
     DAC_0 = 0
 } DACName;
 
-
+#define DEVICE_SPI_COUNT 2
 typedef enum {
     SPI_0 = 0,
     SPI_1 = 1,

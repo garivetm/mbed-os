@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2006-2015 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,5 +80,10 @@ void us_ticker_clear_interrupt(void) {
 
     US_TICKER_TIMER1->TimerIntClr = 0x1;
     US_TICKER_TIMER2->TimerIntClr = 0x1;
+
+}
+
+void us_ticker_free(void)
+{
 
 }

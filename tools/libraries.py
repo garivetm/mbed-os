@@ -1,6 +1,7 @@
 """
 mbed SDK
 Copyright (c) 2011-2013 ARM Limited
+SPDX-License-Identifier: Apache-2.0
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,8 +22,7 @@ from tools.paths import MBED_LIBRARIES,\
     CPPUTEST_PLATFORM_SRC, CPPUTEST_TESTRUNNER_SCR, CPPUTEST_LIBRARY,\
     CPPUTEST_INC, CPPUTEST_PLATFORM_INC, CPPUTEST_TESTRUNNER_INC,\
     CPPUTEST_INC_EXT
-from tools.data.support import DEFAULT_SUPPORT
-from tools.tests import TEST_MBED_LIB
+from tools.tests import TEST_MBED_LIB, DEFAULT_SUPPORT
 
 
 LIBRARIES = [

@@ -1,6 +1,7 @@
 """
 mbed SDK
 Copyright (c) 2014-2016 ARM Limited
+SPDX-License-Identifier: Apache-2.0
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,6 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from os.path import splitext, basename
+from os import remove
 
 from tools.export.exporters import Exporter, deprecated_exporter
 
@@ -26,36 +28,20 @@ class CoIDE(Exporter):
 
     TARGETS = [
         'KL25Z',
-        'KL05Z',
         'LPC1768',
         'ARCH_PRO',
         'ARCH_MAX',
-        'UBLOX_C027',
-        'NUCLEO_L053R8',
         'NUCLEO_L152RE',
-        'NUCLEO_F030R8',
-        'NUCLEO_F042K6',
         'NUCLEO_F070RB',
         'NUCLEO_F072RB',
         'NUCLEO_F091RC',
         'NUCLEO_F103RB',
-        'NUCLEO_F302R8',
         'NUCLEO_F303K8',
         'NUCLEO_F303RE',
-        'NUCLEO_F334R8',
         'NUCLEO_F401RE',
-        'NUCLEO_F410RB',
         'NUCLEO_F411RE',
         'NUCLEO_F446RE',
-        'DISCO_L053C8',
-        'DISCO_F051R8',
-        'DISCO_F100RB',
-        'DISCO_F303VC',
-        'DISCO_F334C8',
-        'DISCO_F401VC',
-        'DISCO_F407VG',
         'DISCO_F429ZI',
-        'MTS_MDOT_F405RG',
         'MTS_MDOT_F411RE',
         'MOTE_L152RC',
         'NZ32_SC151',
@@ -74,20 +60,20 @@ class CoIDE(Exporter):
     def generate(self):
         self.resources.win_to_unix()
         source_files = []
-        for r_type, n in CoIDE.FILE_TYPES.iteritems():
+        for r_type, n in CoIDE.FILE_TYPES.items():
             for file in getattr(self.resources, r_type):
                 source_files.append({
                     'name': basename(file), 'type': n, 'path': file
                 })
         header_files = []
-        for r_type, n in CoIDE.FILE_TYPES2.iteritems():
+        for r_type, n in CoIDE.FILE_TYPES2.items():
             for file in getattr(self.resources, r_type):
                 header_files.append({
                     'name': basename(file), 'type': n, 'path': file
                 })
 
         libraries = []
-        for lib in self.resources.libraries:
+        for lib in self.libraries:
             l, _ = splitext(basename(lib))
             libraries.append(l[3:])
 
@@ -109,3 +95,7 @@ class CoIDE(Exporter):
 
         # Project file
         self.gen_file('coide/%s.coproj.tmpl' % target, ctx, '%s.coproj' % self.project_name)
+
+    @staticmethod
+    def clean(project_name):
+        remove('%s.coproj' % project_name)

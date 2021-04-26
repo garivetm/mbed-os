@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2006-2013 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +28,9 @@ static float pwm_clock_mhz;
 /* Array of FTM peripheral base address. */
 static FTM_Type *const ftm_addrs[] = FTM_BASE_PTRS;
 
-void pwmout_init(pwmout_t* obj, PinName pin)
+void pwmout_init_direct(pwmout_t *obj, const PinMap *pinmap)
 {
-    PWMName pwm = (PWMName)pinmap_peripheral(pin, PinMap_PWM);
+    PWMName pwm = (PWMName)pinmap->peripheral;
     MBED_ASSERT(pwm != (PWMName)NC);
 
     obj->pwm_name = pwm;
@@ -70,15 +71,26 @@ void pwmout_init(pwmout_t* obj, PinName pin)
     FTM_StartTimer(ftm_addrs[instance], kFTM_SystemClock);
 
     // Wire pinout
-    pinmap_pinout(pin, PinMap_PWM);
+    pin_function(pinmap->pin, pinmap->function);
+    pin_mode(pinmap->pin, PullNone);
 }
 
-void pwmout_free(pwmout_t* obj)
+void pwmout_init(pwmout_t *obj, PinName pin)
+{
+    int peripheral = (int)pinmap_peripheral(pin, PinMap_PWM);
+    int function = (int)pinmap_find_function(pin, PinMap_PWM);
+
+    const PinMap static_pinmap = {pin, peripheral, function};
+
+    pwmout_init_direct(obj, &static_pinmap);
+}
+
+void pwmout_free(pwmout_t *obj)
 {
     FTM_Deinit(ftm_addrs[obj->pwm_name >> TPM_SHIFT]);
 }
 
-void pwmout_write(pwmout_t* obj, float value)
+void pwmout_write(pwmout_t *obj, float value)
 {
     if (value < 0.0f) {
         value = 0.0f;
@@ -96,50 +108,79 @@ void pwmout_write(pwmout_t* obj, float value)
     FTM_SetSoftwareTrigger(base, true);
 }
 
-float pwmout_read(pwmout_t* obj)
+float pwmout_read(pwmout_t *obj)
 {
     FTM_Type *base = ftm_addrs[obj->pwm_name >> TPM_SHIFT];
     uint16_t count = (base->CONTROLS[obj->pwm_name & 0xF].CnV) & FTM_CnV_VAL_MASK;
     uint16_t mod = base->MOD & FTM_MOD_MOD_MASK;
 
-    if (mod == 0)
+    if (mod == 0) {
         return 0.0;
+    }
     float v = (float)(count) / (float)(mod);
     return (v > 1.0f) ? (1.0f) : (v);
 }
 
-void pwmout_period(pwmout_t* obj, float seconds)
+void pwmout_period(pwmout_t *obj, float seconds)
 {
     pwmout_period_us(obj, seconds * 1000000.0f);
 }
 
-void pwmout_period_ms(pwmout_t* obj, int ms)
+void pwmout_period_ms(pwmout_t *obj, int ms)
 {
     pwmout_period_us(obj, ms * 1000);
 }
 
 // Set the PWM period, keeping the duty cycle the same.
-void pwmout_period_us(pwmout_t* obj, int us)
+void pwmout_period_us(pwmout_t *obj, int us)
 {
     FTM_Type *base = ftm_addrs[obj->pwm_name >> TPM_SHIFT];
     float dc = pwmout_read(obj);
 
-    // Stop FTM clock to ensure instant update of MOD register
-    base->MOD = FTM_MOD_MOD((pwm_clock_mhz * (float)us) - 1);
+    uint32_t pwm_base_clock;
+    uint32_t clkdiv = 0;
+    pwm_base_clock = CLOCK_GetFreq(kCLOCK_BusClk);
+    pwm_clock_mhz = (float) pwm_base_clock / 1000000.0f;
+    uint32_t mod = (pwm_clock_mhz * (float) us) - 1;
+    while (mod > 0xFFFF) {
+        ++clkdiv;
+        pwm_clock_mhz /= 2.0f;
+        mod = (pwm_clock_mhz * (float) us) - 1;
+        if (clkdiv == 7) {
+            break;
+        }
+    }
+    uint32_t SC = base->SC & ~FTM_SC_PS_MASK;
+    SC |= FTM_SC_PS((ftm_clock_prescale_t) clkdiv);
+    base->SC = SC;
+
+    //Stop FTM clock to ensure instant update of MOD register
+    base->MOD = FTM_MOD_MOD(mod);
     pwmout_write(obj, dc);
 }
 
-void pwmout_pulsewidth(pwmout_t* obj, float seconds)
+int pwmout_read_period_us(pwmout_t *obj)
+{
+    uint32_t pwm_period = 0;
+    if (pwm_clock_mhz > 0) {
+        FTM_Type *base = ftm_addrs[obj->pwm_name >> TPM_SHIFT];
+        uint16_t mod = base->MOD & FTM_MOD_MOD_MASK;
+        pwm_period = ((mod) + 1) / pwm_clock_mhz;
+    }
+    return pwm_period;
+}
+
+void pwmout_pulsewidth(pwmout_t *obj, float seconds)
 {
     pwmout_pulsewidth_us(obj, seconds * 1000000.0f);
 }
 
-void pwmout_pulsewidth_ms(pwmout_t* obj, int ms)
+void pwmout_pulsewidth_ms(pwmout_t *obj, int ms)
 {
     pwmout_pulsewidth_us(obj, ms * 1000);
 }
 
-void pwmout_pulsewidth_us(pwmout_t* obj, int us)
+void pwmout_pulsewidth_us(pwmout_t *obj, int us)
 {
     FTM_Type *base = ftm_addrs[obj->pwm_name >> TPM_SHIFT];
     uint32_t value = (uint32_t)(pwm_clock_mhz * (float)us);
@@ -148,6 +189,21 @@ void pwmout_pulsewidth_us(pwmout_t* obj, int us)
     base->CONTROLS[obj->pwm_name & 0xF].CnV = value;
     /* Software trigger to update registers */
     FTM_SetSoftwareTrigger(base, true);
+}
+
+int pwmout_read_pulsewidth_us(pwmout_t *obj)
+{
+    uint32_t pwm_pulsewidth = 0;
+    if (pwm_clock_mhz > 0) {
+        FTM_Type *base = ftm_addrs[obj->pwm_name >> TPM_SHIFT];
+        pwm_pulsewidth = (base->CONTROLS[obj->pwm_name & 0xF].CnV) / pwm_clock_mhz;
+    }
+    return pwm_pulsewidth;
+}
+
+const PinMap *pwmout_pinmap()
+{
+    return PinMap_PWM;
 }
 
 #endif

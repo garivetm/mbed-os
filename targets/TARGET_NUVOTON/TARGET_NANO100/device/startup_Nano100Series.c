@@ -58,7 +58,6 @@ extern uint32_t __data_end__;
 extern uint32_t __bss_start__;
 extern uint32_t __bss_end__;
 
-extern void uvisor_init(void);
 #if defined(TOOLCHAIN_GCC_ARM)
 extern void _start(void);
 #else
@@ -115,7 +114,7 @@ WEAK_ALIAS_FUNC(RTC_IRQHandler, Default_Handler)            // Real time clock i
 
 /* Vector table */
 #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050))
-__attribute__ ((section("RESET")))
+__attribute__ ((section("RESET"), used))
 const uint32_t __vector_handlers[] = {
 #elif defined(__ICCARM__)
 extern uint32_t CSTACK$$Limit;

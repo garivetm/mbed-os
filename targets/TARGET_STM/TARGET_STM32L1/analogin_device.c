@@ -1,30 +1,18 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2016, STMicroelectronics
+ * SPDX-License-Identifier: BSD-3-Clause
+ ******************************************************************************
+ *
+ * Copyright (c) 2016-2020 STMicroelectronics.
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- * 3. Neither the name of STMicroelectronics nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ ******************************************************************************
  */
+
 #include "mbed_assert.h"
 #include "analogin_api.h"
 
@@ -35,12 +23,9 @@
 #include "pinmap.h"
 #include "mbed_error.h"
 #include "PeripheralPins.h"
-#include <stdbool.h>
 
 void analogin_init(analogin_t *obj, PinName pin)
 {
-    static bool adc_hsi_inited = false;
-    RCC_OscInitTypeDef RCC_OscInitStruct;
     uint32_t function = (uint32_t)NC;
 
     // ADC Internal Channels "pins"  (Temperature, Vref, Vbat, ...)
@@ -91,24 +76,26 @@ void analogin_init(analogin_t *obj, PinName pin)
     if (HAL_ADC_Init(&obj->handle) != HAL_OK) {
         error("Cannot initialize ADC");
     }
-
-    // This section is done only once
-    if (!adc_hsi_inited) {
-        adc_hsi_inited = true;
-        // Enable the HSI (to clock the ADC)
-        RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-        RCC_OscInitStruct.HSIState       = RCC_HSI_ON;
-        RCC_OscInitStruct.PLL.PLLState   = RCC_PLL_NONE;
-        RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-        HAL_RCC_OscConfig(&RCC_OscInitStruct);
-    }
 }
 
 uint16_t adc_read(analogin_t *obj)
 {
     ADC_ChannelConfTypeDef sConfig = {0};
 
+    if (!__HAL_RCC_GET_FLAG(RCC_FLAG_HSIRDY)) {
+        // Enable the HSI (to clock the ADC)
+        RCC_OscInitTypeDef RCC_OscInitStruct;
+        RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+        RCC_OscInitStruct.HSIState       = RCC_HSI_ON;
+        RCC_OscInitStruct.PLL.PLLState   = RCC_PLL_NONE;
+        RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+        HAL_RCC_OscConfig(&RCC_OscInitStruct);
+    }
+
     // Configure ADC channel
+    sConfig.Rank         = ADC_REGULAR_RANK_1;
+    sConfig.SamplingTime = ADC_SAMPLETIME_48CYCLES;
+
     switch (obj->channel) {
         case 0:
             sConfig.Channel = ADC_CHANNEL_0;
@@ -160,9 +147,11 @@ uint16_t adc_read(analogin_t *obj)
             break;
         case 16:
             sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;
+            sConfig.SamplingTime = ADC_SAMPLETIME_384CYCLES;
             break;
         case 17:
             sConfig.Channel = ADC_CHANNEL_VREFINT;
+            sConfig.SamplingTime = ADC_SAMPLETIME_384CYCLES;
             break;
         case 18:
             sConfig.Channel = ADC_CHANNEL_18;
@@ -220,19 +209,22 @@ uint16_t adc_read(analogin_t *obj)
             return 0;
     }
 
-    sConfig.Rank         = ADC_REGULAR_RANK_1;
-    sConfig.SamplingTime = ADC_SAMPLETIME_16CYCLES;
-
     HAL_ADC_ConfigChannel(&obj->handle, &sConfig);
 
     HAL_ADC_Start(&obj->handle); // Start conversion
 
     // Wait end of conversion and get value
+    uint16_t adcValue = 0;
     if (HAL_ADC_PollForConversion(&obj->handle, 10) == HAL_OK) {
-        return (uint16_t)HAL_ADC_GetValue(&obj->handle);
-    } else {
-        return 0;
+        adcValue = (uint16_t)HAL_ADC_GetValue(&obj->handle);
     }
+    LL_ADC_SetCommonPathInternalCh(__LL_ADC_COMMON_INSTANCE((&obj->handle)->Instance), LL_ADC_PATH_INTERNAL_NONE);
+    return adcValue;
+}
+
+const PinMap *analogin_pinmap()
+{
+    return PinMap_ADC;
 }
 
 #endif

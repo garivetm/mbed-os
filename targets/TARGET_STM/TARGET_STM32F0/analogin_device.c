@@ -1,30 +1,18 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2016, STMicroelectronics
+ * SPDX-License-Identifier: BSD-3-Clause
+ ******************************************************************************
+ *
+ * Copyright (c) 2015-2020 STMicroelectronics.
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- * 3. Neither the name of STMicroelectronics nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ ******************************************************************************
  */
+
 #include "mbed_assert.h"
 #include "analogin_api.h"
 
@@ -35,11 +23,9 @@
 #include "pinmap.h"
 #include "mbed_error.h"
 #include "PeripheralPins.h"
-#include <stdbool.h>
 
 void analogin_init(analogin_t *obj, PinName pin)
 {
-    static bool adc_calibrated = false;
     uint32_t function = (uint32_t)NC;
 
     // ADC Internal Channels "pins"  (Temperature, Vref, Vbat, ...)
@@ -73,7 +59,7 @@ void analogin_init(analogin_t *obj, PinName pin)
     obj->handle.Init.Resolution            = ADC_RESOLUTION_12B;
     obj->handle.Init.DataAlign             = ADC_DATAALIGN_RIGHT;
     obj->handle.Init.ScanConvMode          = ADC_SCAN_DIRECTION_FORWARD;
-    obj->handle.Init.EOCSelection          = EOC_SINGLE_CONV;
+    obj->handle.Init.EOCSelection          = ADC_EOC_SINGLE_CONV;
     obj->handle.Init.LowPowerAutoWait      = DISABLE;
     obj->handle.Init.LowPowerAutoPowerOff  = DISABLE;
     obj->handle.Init.ContinuousConvMode    = DISABLE;
@@ -81,7 +67,7 @@ void analogin_init(analogin_t *obj, PinName pin)
     obj->handle.Init.ExternalTrigConv      = ADC_SOFTWARE_START;
     obj->handle.Init.ExternalTrigConvEdge  = ADC_EXTERNALTRIGCONVEDGE_NONE;
     obj->handle.Init.DMAContinuousRequests = DISABLE;
-    obj->handle.Init.Overrun               = OVR_DATA_OVERWRITTEN;
+    obj->handle.Init.Overrun               = ADC_OVR_DATA_OVERWRITTEN;
 
     __HAL_RCC_ADC1_CLK_ENABLE();
 
@@ -89,9 +75,7 @@ void analogin_init(analogin_t *obj, PinName pin)
         error("Cannot initialize ADC");
     }
 
-    // ADC calibration is done only once
-    if (!adc_calibrated) {
-        adc_calibrated = true;
+    if (!LL_ADC_REG_ReadConversionData6(obj->handle.Instance)) {
         HAL_ADCEx_Calibration_Start(&obj->handle);
     }
 }
@@ -102,11 +86,7 @@ uint16_t adc_read(analogin_t *obj)
 
     // Configure ADC channel
     sConfig.Rank         = ADC_RANK_CHANNEL_NUMBER;
-#if defined (TARGET_STM32F091RC)
-    sConfig.SamplingTime = ADC_SAMPLETIME_13CYCLES_5;
-#else
-    sConfig.SamplingTime = ADC_SAMPLETIME_7CYCLES_5;
-#endif
+    sConfig.SamplingTime = ADC_SAMPLETIME_41CYCLES_5;
 
     switch (obj->channel) {
         case 0:
@@ -159,13 +139,16 @@ uint16_t adc_read(analogin_t *obj)
             break;
         case 16:
             sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;
+            sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
             break;
         case 17:
             sConfig.Channel = ADC_CHANNEL_VREFINT;
+            sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
             break;
 #ifdef ADC_CHANNEL_VBAT
         case 18:
             sConfig.Channel = ADC_CHANNEL_VBAT;
+            sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
             break;
 #endif
         default:
@@ -180,11 +163,17 @@ uint16_t adc_read(analogin_t *obj)
     HAL_ADC_Start(&obj->handle); // Start conversion
 
     // Wait end of conversion and get value
+    uint16_t adcValue = 0;
     if (HAL_ADC_PollForConversion(&obj->handle, 10) == HAL_OK) {
-        return (uint16_t)HAL_ADC_GetValue(&obj->handle);
-    } else {
-        return 0;
+        adcValue = (uint16_t)HAL_ADC_GetValue(&obj->handle);
     }
+    LL_ADC_SetCommonPathInternalCh(__LL_ADC_COMMON_INSTANCE((&obj->handle)->Instance), LL_ADC_PATH_INTERNAL_NONE);
+    return adcValue;
+}
+
+const PinMap *analogin_pinmap()
+{
+    return PinMap_ADC;
 }
 
 #endif

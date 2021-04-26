@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2006-2013 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +35,16 @@ typedef enum {
     UART_4 = 4,
 } UARTName;
 
-#define STDIO_UART_TX     USBTX
-#define STDIO_UART_RX     USBRX
+#if defined(MBED_CONF_TARGET_STDIO_UART_TX)
+#define STDIO_UART_TX MBED_CONF_TARGET_STDIO_UART_TX
+#else
+#define STDIO_UART_TX CONSOLE_TX
+#endif
+#if defined(MBED_CONF_TARGET_STDIO_UART_RX)
+#define STDIO_UART_RX MBED_CONF_TARGET_STDIO_UART_RX
+#else
+#define STDIO_UART_RX CONSOLE_RX
+#endif
 #define STDIO_UART        UART_0
 
 typedef enum {
@@ -110,6 +119,8 @@ typedef enum {
     ADC1_SE7b = (1 << ADC_INSTANCE_SHIFT) | (1 << ADC_B_CHANNEL_SHIFT) | 7,
     ADC1_SE8  = (1 << ADC_INSTANCE_SHIFT) | 8,
     ADC1_SE9  = (1 << ADC_INSTANCE_SHIFT) | 9,
+    ADC1_SE10 = (1 << ADC_INSTANCE_SHIFT) | 10,
+    ADC1_SE11 = (1 << ADC_INSTANCE_SHIFT) | 11,
     ADC1_SE12 = (1 << ADC_INSTANCE_SHIFT) | 12,
     ADC1_SE13 = (1 << ADC_INSTANCE_SHIFT) | 13,
     ADC1_SE14 = (1 << ADC_INSTANCE_SHIFT) | 14,
@@ -124,7 +135,7 @@ typedef enum {
     DAC_0 = 0
 } DACName;
 
-
+#define DEVICE_SPI_COUNT 3
 typedef enum {
     SPI_0 = 0,
     SPI_1 = 1,

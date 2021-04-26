@@ -8,7 +8,7 @@
         "PTI": true,
         "has-2p4": false,
         "has-subgig": false,
-        "pti-mode": "RADIO_PTI_MODE_UART",
+        "pti-mode": "RAIL_PTI_MODE_UART",
         "pti-baudrate" : 1600000,
         "pti-dout-location": 6,
         "pti-dout-port": "gpioPortB",
@@ -21,15 +21,8 @@
         "pti-dframe-pin": 13
     },
     "target_overrides": {
-        "TB_SENSE_1": {
-            "sl-rail.has-2p4": true
-        },
         "TB_SENSE_12": {
             "sl-rail.has-2p4": true
-        },
-        "EFR32MG1_BRD4150": {
-            "sl-rail.has-2p4": true,
-            "sl-rail.has-subgig": true
         }
     }
 }

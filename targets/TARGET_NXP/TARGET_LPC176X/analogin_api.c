@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2006-2013 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,4 +123,9 @@ uint16_t analogin_read_u16(analogin_t *obj) {
 float analogin_read(analogin_t *obj) {
     uint32_t value = adc_read_u32(obj);
     return (float)value * (1.0f / (float)ADC_RANGE);
+}
+
+const PinMap *analogin_pinmap()
+{
+    return PinMap_ADC;
 }

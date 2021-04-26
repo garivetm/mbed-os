@@ -6,6 +6,9 @@
  * @brief    CMSIS Cortex-M4 Core Peripheral Access Layer Source File for M480 Series MCU
  *
  * @note
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Copyright (C) 2013~2015 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 
@@ -24,11 +27,13 @@
 #if defined(__CC_ARM)
 #define WEAK            __attribute__ ((weak))
 #define ALIAS(f)        __attribute__ ((weak, alias(#f)))
+#define USED            __attribute__ ((used))
 
 #define WEAK_ALIAS_FUNC(FUN, FUN_ALIAS) \
 void FUN(void) __attribute__ ((weak, alias(#FUN_ALIAS)));
 
 #elif defined(__ICCARM__)
+#define USED            __root
 //#define STRINGIFY(x) #x
 //#define _STRINGIFY(x) STRINGIFY(x)
 #define WEAK_ALIAS_FUNC(FUN, FUN_ALIAS) \
@@ -42,6 +47,7 @@ _Pragma(_STRINGIFY(_WEAK_ALIAS_FUNC(FUN, FUN_ALIAS)))
 #elif defined(__GNUC__)
 #define WEAK            __attribute__ ((weak))
 #define ALIAS(f)        __attribute__ ((weak, alias(#f)))
+#define USED            __attribute__ ((used))
 
 #define WEAK_ALIAS_FUNC(FUN, FUN_ALIAS) \
 void FUN(void) __attribute__ ((weak, alias(#FUN_ALIAS)));
@@ -63,7 +69,6 @@ extern uint32_t __data_end__;
 extern uint32_t __bss_start__;
 extern uint32_t __bss_end__;
 
-extern void uvisor_init(void);
 #if defined(TOOLCHAIN_GCC_ARM)
 extern void _start(void);
 #else
@@ -78,7 +83,7 @@ void Default_Handler(void);
 void Reset_Handler(void);
 void Reset_Handler_1(void);
 void Reset_Handler_2(void);
-void Reset_Handler_Cascade(void *sp, void *pc);
+USED void Reset_Handler_Cascade(void *sp, void *pc);
 
 /* Cortex-M4 core handlers */
 WEAK_ALIAS_FUNC(NMI_Handler, Default_Handler)
@@ -191,7 +196,7 @@ WEAK_ALIAS_FUNC(ETMC_IRQHandler, Default_Handler)       // 95:
 
 /* Vector table */
 #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050))
-__attribute__ ((section("RESET")))
+__attribute__ ((section("RESET"), used))
 const uint32_t __vector_handlers[] = {
 #elif defined(__ICCARM__)
 extern uint32_t CSTACK$$Limit;
@@ -358,18 +363,12 @@ __asm void Reset_Handler_Cascade(void *sp, void *pc)
 
 #elif defined (__GNUC__) || defined (__ICCARM__)
 
-void Reset_Handler(void)
+__attribute__((naked)) void Reset_Handler(void)
 {
-    /* NOTE: In debugger disassembly view, check initial stack cannot be accessed until initial stack pointer has changed to 0x20000200 */
-    __asm volatile (
-        "mov    sp, %0                  \n"
-        "mov    r0, sp                  \n"
-        "mov    r1, %1                  \n"
-        "b     Reset_Handler_Cascade    \n"
-        :                                           /* output operands */
-        : "l"(0x20000200), "l"(&Reset_Handler_1)    /* input operands */
-        : "r0", "r1", "cc"                          /* list of clobbered registers */
-    );
+    __asm("ldr      sp, =0x20000200                                 \n");
+    __asm("mov      r0, sp                                          \n");
+    __asm("ldr      r1, =Reset_Handler_1                            \n");
+    __asm("b        Reset_Handler_Cascade                           \n");
 }
 
 void Reset_Handler_Cascade(void *sp, void *pc)
@@ -417,17 +416,6 @@ void Reset_Handler_1(void)
 
 void Reset_Handler_2(void)
 {
-    /**
-     * The call to uvisor_init() happens independently of uVisor being enabled or
-     * not, so it is conditionally compiled only based on FEATURE_UVISOR.
-     *
-     * The call to uvisor_init() must be right after system initialization (usually called SystemInit()) and 
-     * right before the C/C++ library initialization (zeroing the BSS section, loading data from flash to SRAM). 
-     * Otherwise, we might get data corruption.
-     */
-#if defined(FEATURE_UVISOR)
-    uvisor_init();
-#endif
 
 #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050))
     __main();

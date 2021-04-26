@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2006-2013 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -238,4 +239,44 @@ void spi_slave_write(spi_t *obj, int value) {
         obj->spi->DL = value;
     }
 
+}
+
+const PinMap *spi_master_mosi_pinmap()
+{
+    return PinMap_SPI_MOSI;
+}
+
+const PinMap *spi_master_miso_pinmap()
+{
+    return PinMap_SPI_MISO;
+}
+
+const PinMap *spi_master_clk_pinmap()
+{
+    return PinMap_SPI_SCLK;
+}
+
+const PinMap *spi_master_cs_pinmap()
+{
+    return PinMap_SPI_SSEL;
+}
+
+const PinMap *spi_slave_mosi_pinmap()
+{
+    return PinMap_SPI_MOSI;
+}
+
+const PinMap *spi_slave_miso_pinmap()
+{
+    return PinMap_SPI_MISO;
+}
+
+const PinMap *spi_slave_clk_pinmap()
+{
+    return PinMap_SPI_SCLK;
+}
+
+const PinMap *spi_slave_cs_pinmap()
+{
+    return PinMap_SPI_SSEL;
 }

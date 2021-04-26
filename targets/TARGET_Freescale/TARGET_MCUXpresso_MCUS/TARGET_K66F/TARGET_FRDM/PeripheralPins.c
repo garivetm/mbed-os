@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
  * Copyright (c) 2006-2013 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +45,8 @@ const PinMap PinMap_ADC[] = {
     {PTC9,  ADC1_SE5b, 0},
     {PTC10, ADC1_SE6b, 0},
     {PTC11, ADC1_SE7b, 0},
+    {PTB4 , ADC1_SE10, 0},
+    {PTB5 , ADC1_SE11, 0},
     {PTB6 , ADC1_SE12, 0},
     {PTB7 , ADC1_SE13, 0},
     {PTB10, ADC1_SE14, 0},

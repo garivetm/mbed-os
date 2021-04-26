@@ -1,6 +1,7 @@
 /* MPS2 CMSIS Library
 *
 * Copyright (c) 2006-2016 ARM Limited
+* SPDX-License-Identifier: BSD-3-Clause
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -99,7 +100,7 @@ typedef enum IRQn
 
 /* --------  Configuration of the Cortex-M0+ Processor and Core Peripherals  ------ */
 #define __CM0PLUS_REV             0x0000    /* Core revision r0p0                              */
-#define __MPU_PRESENT             1         /* MPU present or not                              */
+#define __MPU_PRESENT             0         /* MPU present or not                              */
 #define __VTOR_PRESENT            1         /* VTOR present or not                             */
 #define __NVIC_PRIO_BITS          2         /* Number of Bits used for Priority Levels         */
 #define __Vendor_SysTickConfig    0         /* Set to 1 if different SysTick Config is used    */

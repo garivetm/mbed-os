@@ -6,7 +6,7 @@
  * @date:    $Date: $
  *-----------------------------------------------------------------------------
  *
-Copyright (c) 2010-2017 Analog Devices, Inc.
+Copyright (c) 2010-2018 Analog Devices, Inc.
 
 All rights reserved.
 
@@ -44,14 +44,14 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  *****************************************************************************/
-#include <stdint.h>
-#ifdef __CC_ARM
+#ifdef __ARMCC_VERSION
 #include <rt_misc.h>
 #endif
+#define __PROGRAM_START
 #include <cmsis.h>
+#undef __PROGRAM_START
 #include <startup_ADuCM3029.h>
 #include <mbed_rtx.h>
-
 
 /*----------------------------------------------------------------------------
   External function Declaration
@@ -61,11 +61,12 @@ extern void SramInit(void);
 /*----------------------------------------------------------------------------
   Checksum options
  *----------------------------------------------------------------------------*/
- #if defined (__CC_ARM)
-__attribute__ ((at(0x000001A0u)))
-#elif defined( __ICCARM__)
+
+#if defined( __ICCARM__)
 __root
-#endif /* __ICCARM__ */
+#else
+__attribute__((used))
+#endif
 const uint32_t SECTION_PLACE(blank_checksum[],".checksum") =
 {
     BLANKX60,BLANKX600
@@ -142,6 +143,11 @@ WEAK_FUNCTION( DMA_SIP7_Int_Handler        )
 /*----------------------------------------------------------------------------
   Exception / Interrupt Vector table
  *----------------------------------------------------------------------------*/
+#if defined( __ICCARM__)
+__root
+#else
+__attribute__((used))
+#endif
 const pFunc SECTION_PLACE(IVT_NAME[104],VECTOR_SECTION) =
 {
     (pFunc) INITIAL_SP,    /* Initial Stack Pointer */
@@ -151,7 +157,7 @@ const pFunc SECTION_PLACE(IVT_NAME[104],VECTOR_SECTION) =
 /*----------------------------------------------------------------------------
 * Initialize .bss and .data for GNU
 *----------------------------------------------------------------------------*/
-#if defined( __GNUC__) && !defined (__CC_ARM)
+#if defined( __GNUC__) && !defined (__ARMCC_VERSION)
 void zero_bss(void)
 {
     uint32_t *pSrc, *pDest;
@@ -248,7 +254,7 @@ void Reset_Handler(void)
        may reside in DSRAM bank B. */
     SramInit();
 
-#if defined(__GNUC__) && !defined (__CC_ARM)
+#if defined(__GNUC__) && !defined (__ARMCC_VERSION)
     /* Clear the bss section for GCC build only */
     zero_bss();
 #endif
@@ -263,7 +269,7 @@ void Reset_Handler(void)
 /*----------------------------------------------------------------------------
   Default Handler for Exceptions / Interrupts
  *----------------------------------------------------------------------------*/
-#if defined(__CC_ARM) || defined (__GNUC__)
+#if defined(__ARMCC_VERSION) || defined (__GNUC__)
 void Default_Handler(void)
 {
     while(1);

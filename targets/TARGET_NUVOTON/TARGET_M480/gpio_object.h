@@ -1,5 +1,7 @@
-/* mbed Microcontroller Library
- * Copyright (c) 2015-2016 Nuvoton
+/*
+ * Copyright (c) 2015-2016, Nuvoton Technology Corporation
+ *
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +30,10 @@ extern "C" {
 #endif
 
 typedef struct {
-    PinName  pin;
-    uint32_t mask;
+    PinName         pin;
+    uint32_t        mask;
+    PinDirection    direction;
+    PinMode         mode;
 } gpio_t;
 
 static inline void gpio_write(gpio_t *obj, int value)
