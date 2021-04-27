@@ -173,6 +173,11 @@ class Sw4STM32(GNUARMEclipse):
             'name': 'NUCLEO-L432KC',
             'mcuId': 'STM32L432KCUx'
         },
+        'DRVA_L432KC':
+        {
+            'name': 'DRVA-L432KC',
+            'mcuId': 'STM32L432KCUx'
+        },
         'ADV_WISE_1510':
         {
             'name': 'MTB-ADV-WISE-1510',
