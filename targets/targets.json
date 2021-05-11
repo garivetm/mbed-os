@@ -3585,7 +3585,7 @@
             "NUCLEO_L432KC"
         ],
         "overrides": {
-            "clock_source": "USE_PLL_MSI",
+            "clock_source": "USE_PLL_HSE_EXTC",
             "lse_available": 0
         }
     },
